@@ -1,0 +1,70 @@
+const path = require("path");
+const express = require("express");
+const { getSession } = require("./lib/auth");
+
+require("./seed");
+
+const productsRouter = require("./routes/products");
+const ordersRouter = require("./routes/orders");
+const statsRouter = require("./routes/stats");
+const addonsRouter = require("./routes/addons");
+const authRouter = require("./routes/auth");
+const settingsRouter = require("./routes/settings");
+const reportsRouter = require("./routes/reports");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+const protectedPages = {
+  "/admin": "admin.html",
+  "/queue": "queue.html",
+  "/reports": "reports.html"
+};
+
+for (const [route, file] of Object.entries(protectedPages)) {
+  app.get(route, (req, res) => {
+    if (!getSession(req)) {
+      return res.redirect("/login");
+    }
+    res.sendFile(path.join(__dirname, "public", file));
+  });
+}
+
+app.get("/login", (req, res) => {
+  if (getSession(req)) {
+    return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+app.get("/api/auth/me", (req, res) => {
+  const session = getSession(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  res.json({ username: session.username, role: session.role });
+});
+
+app.use("/api/products", productsRouter);
+app.use("/api/orders", ordersRouter);
+app.use("/api/stats", statsRouter);
+app.use("/api/addons", addonsRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/settings", settingsRouter);
+app.use("/api/reports", reportsRouter);
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Rocks and Teas POS running at http://localhost:${PORT}`);
+});

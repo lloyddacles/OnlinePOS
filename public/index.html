@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocks and Teas - POS</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🍵</div>
+      <div>
+        <h1>Rocks &amp; <span>Teas</span></h1>
+        <div class="tagline">Point of Sale</div>
+      </div>
+    </div>
+    <nav>
+      <a href="/" class="active">POS</a>
+      <a href="/queue">Queue</a>
+      <a href="/admin">Dashboard</a>
+      <a href="/reports">Reports</a>
+      <a href="#" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <main>
+    <section class="menu-panel">
+      <div class="search-bar">
+        <input type="text" id="search" placeholder="Search drinks or scan barcode..." autofocus />
+      </div>
+      <div class="category-tabs" id="categoryTabs"></div>
+      <div class="product-grid" id="productGrid"></div>
+    </section>
+
+    <aside class="cart-panel">
+      <div class="cart-header">
+        <h2>Current Order</h2>
+        <span class="cart-count" id="cartCount">0</span>
+      </div>
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">Your cart is empty.<br />Tap a drink to add it.</div>
+      </div>
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotal">₱ 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>VAT (<span id="taxRateLabel">12</span>%)</span>
+          <span id="tax">₱ 0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="total">₱ 0.00</span>
+        </div>
+        <div class="cart-actions">
+          <button id="holdBtn">Hold Order</button>
+          <button id="heldBtn" style="display:none;">Held (<span id="heldCount">0</span>)</button>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn" disabled>Charge Order</button>
+        <button class="clear-btn" id="clearBtn">Clear Cart</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Customization Modal -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal">
+      <h2 id="customTitle">Customize</h2>
+      <div class="subtitle" id="customSub"></div>
+      <div id="customSections"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelCustom">Cancel</button>
+        <button class="btn btn-primary" id="addCustomBtn">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Held Orders Modal -->
+  <div class="modal-overlay" id="heldModal">
+    <div class="modal">
+      <h2>Held Orders</h2>
+      <div class="subtitle">Restore an order to continue checkout.</div>
+      <div class="held-list" id="heldList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="closeHeld">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal">
+      <h2>Checkout</h2>
+      <div class="subtitle">Complete payment for order #<span class="order-num" id="checkoutOrderNum">—</span></div>
+      <div class="form-group">
+        <label>Customer Name (optional)</label>
+        <input type="text" id="customerName" placeholder="Walk-in customer" />
+      </div>
+
+      <div class="discount-row">
+        <div class="summary-row senior" id="discountSenior">
+          <label><span>Senior / PWD</span><input type="checkbox" id="seniorCheck" style="width:auto;" /></label>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">20% off subtotal</div>
+        </div>
+        <div class="summary-row promo">
+          <label><span>Promo</span><input type="checkbox" id="promoCheck" style="width:auto;" /></label>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <select id="promoType" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
+              <option value="promo_pct">%</option>
+              <option value="promo_amt">₱</option>
+            </select>
+            <input type="number" id="promoValue" min="0" step="0.01" placeholder="0" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:12px;" />
+          </div>
+        </div>
+      </div>
+      <div id="discountLine" class="summary-row" style="margin-top:10px;">
+        <span id="discountLabel">Discount</span>
+        <span id="discountAmount" style="color:var(--danger);">- ₱ 0.00</span>
+      </div>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label>Payment Method</label>
+        <select id="paymentMethod">
+          <option value="Cash">Cash</option>
+          <option value="GCash">GCash</option>
+          <option value="Maya">Maya</option>
+          <option value="Card">Card</option>
+        </select>
+      </div>
+      <div class="form-group" id="cashGroup">
+        <label>Amount Tendered</label>
+        <input type="number" id="amountTendered" min="0" step="0.01" placeholder="0.00" />
+        <div class="quick-cash" id="quickCash"></div>
+      </div>
+      <div id="changeBox" class="change-box" style="display:none;">Change: ₱ 0.00</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelCheckout">Cancel</button>
+        <button class="btn btn-primary" id="confirmCheckout">Complete Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal">
+      <h2>Order Complete!</h2>
+      <div class="subtitle">Payment received. <span id="receiptQueueHint"></span></div>
+      <div class="receipt" id="receipt"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="printReceipt">Print</button>
+        <button class="btn btn-secondary" id="printThermalBtn">58mm</button>
+        <button class="btn btn-primary" id="newOrder">New Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/pos.js"></script>
+</body>
+</html>

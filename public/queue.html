@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocks and Teas - Queue</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🍵</div>
+      <div>
+        <h1>Rocks &amp; <span>Teas</span></h1>
+        <div class="tagline">Order Queue</div>
+      </div>
+    </div>
+    <nav>
+      <a href="/">POS</a>
+      <a href="/queue" class="active">Queue</a>
+      <a href="/admin">Dashboard</a>
+      <a href="/reports">Reports</a>
+      <a href="#" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <main class="queue-main">
+    <div class="queue-toggle">
+      <button class="active" data-filter="active">In Queue</button>
+      <button data-filter="picked">Completed</button>
+      <button data-filter="voided">Voided</button>
+      <button id="refreshQueue">Refresh</button>
+    </div>
+    <div class="queue-grid" id="queueGrid"></div>
+  </main>
+
+  <!-- Void Modal -->
+  <div class="modal-overlay" id="voidModal">
+    <div class="modal">
+      <h2>Void Order</h2>
+      <div class="subtitle">Order #<span class="order-num" id="voidOrderNum"></span></div>
+      <div class="form-group">
+        <label>Reason (required)</label>
+        <input type="text" id="voidReason" placeholder="e.g. Wrong order / Cancelled" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelVoid">Cancel</button>
+        <button class="btn btn-primary" id="confirmVoid" style="background:var(--danger);">Void Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/queue.js"></script>
+</body>
+</html>

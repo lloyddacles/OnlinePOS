@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocks and Teas - Reports</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🍵</div>
+      <div>
+        <h1>Rocks &amp; <span>Teas</span></h1>
+        <div class="tagline">Sales Reports</div>
+      </div>
+    </div>
+    <nav>
+      <a href="/">POS</a>
+      <a href="/queue">Queue</a>
+      <a href="/admin">Dashboard</a>
+      <a href="/reports" class="active">Reports</a>
+      <a href="#" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <main class="admin-main">
+    <div class="report-controls">
+      <div class="form-group">
+        <label>From</label>
+        <input type="date" id="startDate" />
+      </div>
+      <div class="form-group">
+        <label>To</label>
+        <input type="date" id="endDate" />
+      </div>
+      <button class="btn btn-primary" id="loadReport">Generate Report</button>
+      <button class="btn btn-secondary" id="exportCsv" style="flex:none;">Export CSV</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">Revenue</div>
+        <div class="value currency" id="repRevenue">₱ 0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Orders</div>
+        <div class="value" id="repOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Average Order</div>
+        <div class="value currency" id="repAverage">₱ 0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Top Product</div>
+        <div class="value" id="repTop" style="font-size:17px;">—</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <h2 style="font-size:15px;margin-bottom:10px;">Daily Sales</h2>
+      <canvas id="salesChart"></canvas>
+    </div>
+
+    <div class="admin-grid">
+      <div class="panel report-section">
+        <h2>Top Products</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr>
+            </thead>
+            <tbody id="itemsTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel report-section">
+        <h2>Payment Methods</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Method</th><th>Revenue</th></tr>
+            </thead>
+            <tbody id="paymentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/reports.js"></script>
+</body>
+</html>

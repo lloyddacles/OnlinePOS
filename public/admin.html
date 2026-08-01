@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocks and Teas - Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🍵</div>
+      <div>
+        <h1>Rocks &amp; <span>Teas</span></h1>
+        <div class="tagline">Dashboard</div>
+      </div>
+    </div>
+    <nav>
+      <a href="/">POS</a>
+      <a href="/queue">Queue</a>
+      <a href="/admin" class="active">Dashboard</a>
+      <a href="/reports">Reports</a>
+      <a href="#" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <main class="admin-main">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">Sales Today</div>
+        <div class="value currency" id="statSales">₱ 0.00</div>
+        <div class="sub" id="statSalesDate"></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Orders Today</div>
+        <div class="value" id="statOrders">0</div>
+        <div class="sub">Avg <span id="statAvg">₱ 0.00</span> / order</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Products</div>
+        <div class="value" id="statProducts">0</div>
+        <div class="sub" id="statCategories"></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Top Seller Today</div>
+        <div class="value" id="statTop" style="font-size:17px;">—</div>
+        <div class="sub" id="statVoid">0 voided today</div>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <div class="panel">
+        <h2>Recent Orders <button class="add-btn" id="refreshOrders">Refresh</button></h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Time</th>
+                <th>Customer</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Menu Management <button class="add-btn" id="addProductBtn">+ Add Drink</button></h2>
+        <div class="category-bar" id="productCategoryBar"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="productsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-grid" style="margin-top:18px;">
+      <div class="panel">
+        <h2>Add-Ons &amp; Toppings <button class="add-btn" id="addAddonBtn">+ Add Option</button></h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Option</th><th>Type</th><th>Price</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="addonsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Store Settings <button class="add-btn" id="saveSettings">Save</button></h2>
+        <div class="form-group">
+          <label>Store Name</label>
+          <input type="text" id="setStoreName" />
+        </div>
+        <div class="form-group">
+          <label>Store Address</label>
+          <input type="text" id="setStoreAddress" />
+        </div>
+        <div class="form-group">
+          <label>Phone (optional)</label>
+          <input type="text" id="setStorePhone" />
+        </div>
+        <div class="tender-row">
+          <div class="form-group">
+            <label>Tax Rate (%)</label>
+            <input type="number" id="setTaxRate" min="0" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Receipt Footer</label>
+            <input type="text" id="setReceiptFooter" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>Change Password</label>
+          <div class="tender-row">
+            <input type="password" id="pwCurrent" placeholder="Current" />
+            <input type="password" id="pwNext" placeholder="New" />
+          </div>
+          <button class="btn btn-secondary" id="changePwBtn" style="margin-top:8px;flex:none;padding:9px 16px;">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <h2 id="productModalTitle">Add Drink</h2>
+      <div class="subtitle">Add or update a menu item.</div>
+      <input type="hidden" id="productId" />
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="productName" placeholder="e.g. Classic Milk Tea" />
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="productCategory"></select>
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Price (₱)</label>
+          <input type="number" id="productPrice" min="0" step="0.25" placeholder="59.00" />
+        </div>
+        <div class="form-group">
+          <label>Barcode (optional)</label>
+          <input type="text" id="productBarcode" placeholder="e.g. 4801234567890" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="productDescription" placeholder="Short description" />
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="productAvailable" checked style="width:auto;margin-right:6px;" />
+          Available for sale
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelProduct">Cancel</button>
+        <button class="btn btn-primary" id="saveProduct">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Addon Modal -->
+  <div class="modal-overlay" id="addonModal">
+    <div class="modal">
+      <h2 id="addonModalTitle">Add Option</h2>
+      <div class="subtitle">Sweetness, ice level or topping.</div>
+      <input type="hidden" id="addonId" />
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="addonName" placeholder="e.g. Pearls" />
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="addonType">
+            <option value="sweetness">Sweetness</option>
+            <option value="ice">Ice Level</option>
+            <option value="topping">Topping (paid)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price (₱)</label>
+          <input type="number" id="addonPrice" min="0" step="0.25" placeholder="10" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="addonAvailable" checked style="width:auto;margin-right:6px;" />
+          Available
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelAddon">Cancel</button>
+        <button class="btn btn-primary" id="saveAddon">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Detail Modal -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal">
+      <h2>Order <span class="order-num" id="orderNumber"></span></h2>
+      <div class="subtitle" id="orderMeta"></div>
+      <div class="receipt" id="orderReceipt"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="voidOrderBtn" style="color:var(--danger);border-color:var(--danger);">Void</button>
+        <button class="btn btn-primary" id="closeOrder">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

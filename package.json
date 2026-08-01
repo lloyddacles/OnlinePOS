@@ -1,0 +1,21 @@
+{
+  "name": "rocks-and-teas-pos",
+  "version": "1.0.0",
+  "description": "Online Point of Sale system for Rocks and Teas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "pos",
+    "milk-tea",
+    "express",
+    "sqlite"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2"
+  }
+}
