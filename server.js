@@ -12,6 +12,8 @@ const authRouter = require("./routes/auth");
 const settingsRouter = require("./routes/settings");
 const reportsRouter = require("./routes/reports");
 const promosRouter = require("./routes/promos");
+const backupRouter = require("./routes/backup");
+const { pushBackup } = require("./lib/githubBackup");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -79,6 +81,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/promos", promosRouter.router);
+app.use("/api/backup", backupRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
@@ -92,3 +95,14 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Rocks and Teas POS running at http://localhost:${PORT}`);
 });
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+if (process.env.GITHUB_TOKEN && process.env.GITHUB_REPO) {
+  const runBackup = () =>
+    pushBackup()
+      .then((r) => console.log(`[backup] ${r.ok ? "pushed to GitHub" : "failed: " + r.status}`))
+      .catch((err) => console.error("[backup] error:", err.message));
+  setTimeout(runBackup, 60 * 1000);
+  setInterval(runBackup, DAY_MS);
+  console.log("Automatic daily backup to GitHub enabled.");
+}
