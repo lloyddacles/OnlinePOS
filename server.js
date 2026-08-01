@@ -49,6 +49,12 @@ app.get("/api/auth/me", (req, res) => {
   res.json({ username: session.username, role: session.role });
 });
 
+app.get("/api/health", (req, res) => {
+  const db = require("./db");
+  const ok = db.prepare("SELECT 1 AS ok").get();
+  res.json({ ok: ok.ok === 1, uptime: process.uptime() });
+});
+
 app.use("/api/products", productsRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/stats", statsRouter);
