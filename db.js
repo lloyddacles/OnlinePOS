@@ -20,6 +20,7 @@ db.exec(`
     description TEXT DEFAULT '',
     barcode TEXT DEFAULT '',
     available INTEGER NOT NULL DEFAULT 1,
+    is_drink INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
   );
 
@@ -44,10 +45,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS addons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('sweetness', 'ice', 'topping')),
+    type TEXT NOT NULL CHECK(type IN ('sweetness', 'ice', 'topping', 'size', 'flavor')),
     price REAL NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 0,
-    available INTEGER NOT NULL DEFAULT 1
+    available INTEGER NOT NULL DEFAULT 1,
+    category TEXT NOT NULL DEFAULT '',
+    required INTEGER NOT NULL DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS users (
@@ -90,6 +93,27 @@ ensureColumn("products", "barcode", "TEXT DEFAULT ''");
 ensureColumn("orders", "discount_type", "TEXT NOT NULL DEFAULT 'none'");
 ensureColumn("orders", "void_reason", "TEXT DEFAULT ''");
 ensureColumn("orders", "promo_code", "TEXT DEFAULT ''");
+ensureColumn("products", "is_drink", "INTEGER NOT NULL DEFAULT 1");
+
+const addonCols = db.prepare("PRAGMA table_info(addons)").all();
+if (!addonCols.some((c) => c.name === "category")) {
+  db.exec(`
+    ALTER TABLE addons RENAME TO addons_old;
+    CREATE TABLE addons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('sweetness', 'ice', 'topping', 'size', 'flavor')),
+      price REAL NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      available INTEGER NOT NULL DEFAULT 1,
+      category TEXT NOT NULL DEFAULT '',
+      required INTEGER NOT NULL DEFAULT 0
+    );
+    INSERT INTO addons (id, name, type, price, sort_order, available)
+      SELECT id, name, type, price, sort_order, available FROM addons_old;
+    DROP TABLE addons_old;
+  `);
+}
 
 const DEFAULTS = {
   store_name: "Rocks and Teas",

@@ -12,7 +12,9 @@ const CATEGORIES = [
   "Yakult",
   "Oreo",
   "Cheesecake",
-  "Detox Drinks"
+  "Detox Drinks",
+  "Meals",
+  "Chicken Wings"
 ];
 
 router.get("/categories", (req, res) => {
@@ -50,7 +52,7 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", requireAuth, (req, res) => {
-  const { name, category, price, description, barcode } = req.body;
+  const { name, category, price, description, barcode, is_drink = 1 } = req.body;
   if (!name || !category || price == null) {
     return res.status(400).json({ error: "Name, category and price are required" });
   }
@@ -60,9 +62,9 @@ router.post("/", requireAuth, (req, res) => {
 
   const result = db
     .prepare(
-      "INSERT INTO products (name, category, price, description, barcode) VALUES (?, ?, ?, ?, ?)"
+      "INSERT INTO products (name, category, price, description, barcode, is_drink) VALUES (?, ?, ?, ?, ?, ?)"
     )
-    .run(name.trim(), category, Number(price), description || "", barcode || "");
+    .run(name.trim(), category, Number(price), description || "", barcode || "", is_drink ? 1 : 0);
 
   const product = db.prepare("SELECT * FROM products WHERE id = ?").get(result.lastInsertRowid);
   res.status(201).json(product);
@@ -74,9 +76,9 @@ router.put("/:id", requireAuth, (req, res) => {
     return res.status(404).json({ error: "Product not found" });
   }
 
-  const { name, category, price, description, available, barcode } = req.body;
+  const { name, category, price, description, available, barcode, is_drink } = req.body;
   db.prepare(
-    "UPDATE products SET name = ?, category = ?, price = ?, description = ?, available = ?, barcode = ? WHERE id = ?"
+    "UPDATE products SET name = ?, category = ?, price = ?, description = ?, available = ?, barcode = ?, is_drink = ? WHERE id = ?"
   ).run(
     name ?? existing.name,
     category ?? existing.category,
@@ -84,6 +86,7 @@ router.put("/:id", requireAuth, (req, res) => {
     description !== undefined ? description : existing.description,
     available !== undefined ? (available ? 1 : 0) : existing.available,
     barcode !== undefined ? barcode : existing.barcode,
+    is_drink !== undefined ? (is_drink ? 1 : 0) : existing.is_drink,
     req.params.id
   );
 

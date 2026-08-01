@@ -6,7 +6,9 @@ const CATEGORY_EMOJI = {
   "Yakult": "🍼",
   "Oreo": "🍪",
   "Cheesecake": "🍰",
-  "Detox Drinks": "🥒"
+  "Detox Drinks": "🥒",
+  "Meals": "🍝",
+  "Chicken Wings": "🍗"
 };
 
 const state = {
@@ -301,6 +303,15 @@ function populateCategorySelect() {
   select.innerHTML = state.categories
     .map((cat) => `<option value="${cat}">${cat}</option>`)
     .join("");
+
+  const addonSelect = document.getElementById("addonCategory");
+  addonSelect.innerHTML =
+    `<option value="">All Drinks</option>` +
+    state.categories
+      .filter((cat) => cat !== "Chicken Wings")
+      .map((cat) => `<option value="${cat}">${cat} only</option>`)
+      .join("") +
+    `<option value="Chicken Wings">Chicken Wings only</option>`;
 }
 
 function renderOrders(orders) {
@@ -410,6 +421,7 @@ function openProductModal(id) {
 
   const product = state.products.find((p) => p.id === id);
   document.getElementById("productName").value = product ? product.name : "";
+  document.getElementById("productType").value = product ? String(product.is_drink) : "1";
   document.getElementById("productCategory").value = product ? product.category : state.categories[0];
   document.getElementById("productPrice").value = product ? product.price : "";
   document.getElementById("productBarcode").value = product ? product.barcode || "" : "";
@@ -425,6 +437,7 @@ async function saveProduct() {
     name: document.getElementById("productName").value.trim(),
     category: document.getElementById("productCategory").value,
     price: Number(document.getElementById("productPrice").value),
+    is_drink: Number(document.getElementById("productType").value),
     barcode: document.getElementById("productBarcode").value.trim(),
     description: document.getElementById("productDescription").value.trim(),
     available: document.getElementById("productAvailable").checked
@@ -495,8 +508,10 @@ function openAddonModal(id) {
   const addon = state.addons.find((a) => a.id === id);
   document.getElementById("addonName").value = addon ? addon.name : "";
   document.getElementById("addonType").value = addon ? addon.type : "topping";
+  document.getElementById("addonCategory").value = addon ? addon.category || "" : "";
   document.getElementById("addonPrice").value = addon ? addon.price : (addon && addon.type === "topping" ? 10 : 0);
   document.getElementById("addonAvailable").checked = addon ? Boolean(addon.available) : true;
+  document.getElementById("addonRequired").checked = addon ? Boolean(addon.required) : false;
 
   modal.classList.add("open");
 }
@@ -506,8 +521,10 @@ async function saveAddon() {
   const payload = {
     name: document.getElementById("addonName").value.trim(),
     type: document.getElementById("addonType").value,
+    category: document.getElementById("addonCategory").value,
     price: Number(document.getElementById("addonPrice").value) || 0,
-    available: document.getElementById("addonAvailable").checked
+    available: document.getElementById("addonAvailable").checked,
+    required: document.getElementById("addonRequired").checked
   };
 
   if (!payload.name) {

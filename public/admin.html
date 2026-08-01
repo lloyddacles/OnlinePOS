@@ -157,9 +157,18 @@
       <h2 id="productModalTitle">Add Drink</h2>
       <div class="subtitle">Add or update a menu item.</div>
       <input type="hidden" id="productId" />
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" id="productName" placeholder="e.g. Classic Milk Tea" />
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="productName" placeholder="e.g. Classic Milk Tea" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="productType">
+            <option value="1">Drink</option>
+            <option value="0">Food</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label>Category</label>
@@ -196,19 +205,29 @@
   <div class="modal-overlay" id="addonModal">
     <div class="modal">
       <h2 id="addonModalTitle">Add Option</h2>
-      <div class="subtitle">Sweetness, ice level or topping.</div>
+      <div class="subtitle">Sweetness, ice, size, flavor or topping.</div>
       <input type="hidden" id="addonId" />
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" id="addonName" placeholder="e.g. Pearls" />
-      </div>
       <div class="tender-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="addonName" placeholder="e.g. Pearls" />
+        </div>
         <div class="form-group">
           <label>Type</label>
           <select id="addonType">
             <option value="sweetness">Sweetness</option>
             <option value="ice">Ice Level</option>
             <option value="topping">Topping (paid)</option>
+            <option value="size">Size</option>
+            <option value="flavor">Flavor</option>
+          </select>
+        </div>
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Applies To</label>
+          <select id="addonCategory">
+            <option value="">All Drinks</option>
           </select>
         </div>
         <div class="form-group">
@@ -217,9 +236,9 @@
         </div>
       </div>
       <div class="form-group">
-        <label>
-          <input type="checkbox" id="addonAvailable" checked style="width:auto;margin-right:6px;" />
-          Available
+        <label style="display:flex;align-items:center;gap:16px;padding-top:4px;">
+          <span><input type="checkbox" id="addonAvailable" checked style="width:auto;margin-right:6px;" /> Available</span>
+          <span><input type="checkbox" id="addonRequired" style="width:auto;margin-right:6px;" /> Must pick one</span>
         </label>
       </div>
       <div class="modal-actions">

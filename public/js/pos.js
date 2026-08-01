@@ -6,13 +6,17 @@ const CATEGORY_EMOJI = {
   "Yakult": "🍼",
   "Oreo": "🍪",
   "Cheesecake": "🍰",
-  "Detox Drinks": "🥒"
+  "Detox Drinks": "🥒",
+  "Meals": "🍝",
+  "Chicken Wings": "🍗"
 };
 
 const ADDON_TYPE_LABEL = {
   sweetness: "Sweetness",
   ice: "Ice Level",
-  topping: "Toppings"
+  topping: "Toppings",
+  size: "Size",
+  flavor: "Flavor"
 };
 
 const state = {
@@ -96,6 +100,14 @@ function renderCategoryTabs() {
   });
 }
 
+function addonsForProduct(product) {
+  return state.addons.filter(
+    (a) =>
+      a.available &&
+      ((!a.category && product.is_drink) || a.category === product.category)
+  );
+}
+
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   const query = state.search.toLowerCase();
@@ -121,7 +133,7 @@ function renderProducts() {
           <div class="emoji">${emoji}</div>
           <div class="name">${p.name}</div>
           <div class="category">${p.category}</div>
-          <div class="price">${fmt(p.price)}</div>
+          <div class="price">${p.price > 0 ? fmt(p.price) : "Price varies"}</div>
           <div class="add-hint">+</div>
         </div>`;
     })
@@ -131,7 +143,11 @@ function renderProducts() {
     card.addEventListener("click", () => {
       const product = state.products.find((p) => p.id === Number(card.dataset.id));
       if (!product || !product.available) return;
-      openCustomize(product);
+      if (addonsForProduct(product).length === 0) {
+        addToCart(product);
+      } else {
+        openCustomize(product);
+      }
     });
   });
 }
@@ -149,16 +165,17 @@ function openCustomize(product) {
   document.getElementById("customSub").textContent = `${product.category} · ${fmt(product.price)}`;
 
   const sections = document.getElementById("customSections");
-  const hasCustom = state.addons.filter((a) => a.available);
+  const hasCustom = addonsForProduct(product);
   sections.innerHTML = Object.keys(ADDON_TYPE_LABEL)
     .filter((type) => hasCustom.some((a) => a.type === type))
     .map((type) => {
       const options = hasCustom.filter((a) => a.type === type);
       if (options.length === 0) return "";
       const multi = type === "topping";
+      const required = options.some((a) => a.required);
       return `
-        <div class="addon-section">
-          <h4>${ADDON_TYPE_LABEL[type]}${multi ? " (extra ₱)" : ""}</h4>
+        <div class="addon-section" data-group="${type}" data-required="${required ? "1" : "0"}">
+          <h4>${ADDON_TYPE_LABEL[type]}${multi ? " (extra ₱)" : ""}${required ? " *" : ""}</h4>
           <div class="addon-options" data-type="${type}">
             ${options
               .map(
@@ -199,6 +216,19 @@ function openCustomize(product) {
 
 function addCustomToCart() {
   const product = state.customProduct;
+
+  const sections = document.getElementById("customSections");
+  for (const section of sections.querySelectorAll(".addon-section[data-required='1']")) {
+    const type = section.dataset.group;
+    const selected = type === "topping"
+      ? state.customSelections.toppings.length
+      : state.customSelections[type] != null ? 1 : 0;
+    if (!selected) {
+      showToast(`Please select ${ADDON_TYPE_LABEL[type]}`);
+      return;
+    }
+  }
+
   const addons = [];
   for (const [type, selection] of Object.entries(state.customSelections)) {
     if (type === "toppings") {

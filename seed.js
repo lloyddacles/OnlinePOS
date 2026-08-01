@@ -80,6 +80,67 @@ const seedAddons = [
   { name: "Coffee Jelly", type: "topping", price: 10, sort_order: 6 }
 ];
 
+const seedMeals = [
+  { name: "Turones", category: "Meals", price: 45, description: "Crispy fried banana lumpia with caramelized sugar." },
+  { name: "Cheesestick", category: "Meals", price: 45, description: "Golden fried cheese sticks, served with dipping sauce." },
+  { name: "Pork Shanghai", category: "Meals", price: 60, description: "Classic lumpiang shanghai with sweet chili dip." },
+  { name: "Carbonara", category: "Meals", price: 95, description: "Creamy pasta carbonara with bacon and parmesan." },
+  { name: "Spaghetti", category: "Meals", price: 85, description: "Filipino-style spaghetti with sweet meat sauce." },
+  { name: "Tuna Pesto", category: "Meals", price: 95, description: "Pasta tossed in basil pesto with flaked tuna." },
+  { name: "Club House", category: "Meals", price: 110, description: "Triple-decker sandwich with chicken, egg and bacon." },
+  { name: "Cheesy Burger", category: "Meals", price: 70, description: "Beef patty loaded with melted cheese." },
+  { name: "Payumi Burger", category: "Meals", price: 85, description: "House specialty burger with a savory sauce." },
+  { name: "Zaida Burger", category: "Meals", price: 85, description: "Signature burger with house dressing." },
+  { name: "Kani Salad", category: "Meals", price: 90, description: "Crabstick salad with creamy dressing." },
+  { name: "Chicken Wings", category: "Chicken Wings", price: 0, description: "Pick your size and flavor." }
+];
+
+const seedWingAddons = [
+  { name: "4 pcs", type: "size", price: 95, sort_order: 0, category: "Chicken Wings", required: 1 },
+  { name: "6 pcs", type: "size", price: 145, sort_order: 1, category: "Chicken Wings", required: 1 },
+  { name: "10 pcs", type: "size", price: 225, sort_order: 2, category: "Chicken Wings", required: 1 },
+  { name: "16 pcs", type: "size", price: 340, sort_order: 3, category: "Chicken Wings", required: 1 },
+  { name: "30 pcs", type: "size", price: 600, sort_order: 4, category: "Chicken Wings", required: 1 },
+
+  { name: "Spicy", type: "flavor", price: 0, sort_order: 0, category: "Chicken Wings", required: 1 },
+  { name: "Non-Spicy", type: "flavor", price: 0, sort_order: 1, category: "Chicken Wings", required: 1 }
+];
+
+function seedMissingProducts() {
+  const existing = new Set(db.prepare("SELECT name FROM products").all().map((r) => r.name));
+  const missing = seedMeals.filter((p) => !existing.has(p.name));
+  if (missing.length === 0) {
+    console.log("Meal items already present. Skipping.");
+    return;
+  }
+  const insert = db.prepare(
+    "INSERT INTO products (name, category, price, description, available, is_drink) VALUES (@name, @category, @price, @description, 1, 0)"
+  );
+  const runAll = db.transaction((rows) => {
+    for (const row of rows) insert.run(row);
+  });
+  runAll(missing);
+  console.log(`Seeded ${missing.length} meal items.`);
+}
+
+function seedWingAddonsData() {
+  const existing = new Set(db.prepare("SELECT name FROM addons").all().map((r) => r.name));
+  const missing = seedWingAddons.filter((a) => !existing.has(a.name));
+  if (missing.length === 0) {
+    console.log("Wing add-ons already present. Skipping.");
+    return;
+  }
+  const insert = db.prepare(
+    `INSERT INTO addons (name, type, price, sort_order, available, category, required)
+     VALUES (@name, @type, @price, @sort_order, 1, @category, @required)`
+  );
+  const runAll = db.transaction((rows) => {
+    for (const row of rows) insert.run(row);
+  });
+  runAll(missing);
+  console.log(`Seeded ${missing.length} wing add-on options.`);
+}
+
 function seedIfEmpty(table, rows, mapFn, label) {
   const count = db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
   if (count > 0) {
@@ -164,3 +225,5 @@ seedIfEmpty(
 
 seedAdminUser();
 seedPromosData();
+seedMissingProducts();
+seedWingAddonsData();
