@@ -15,6 +15,7 @@
         <div class="tagline">Point of Sale</div>
       </div>
     </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     <nav>
       <a href="/" class="active">POS</a>
       <a href="/queue">Queue</a>
@@ -34,10 +35,11 @@
       <div class="product-grid" id="productGrid"></div>
     </section>
 
-    <aside class="cart-panel">
+    <aside class="cart-panel" id="cartPanel">
       <div class="cart-header">
         <h2>Current Order</h2>
         <span class="cart-count" id="cartCount">0</span>
+        <button class="cart-close" id="cartClose" aria-label="Close cart">✕</button>
       </div>
       <div class="cart-items" id="cartItems">
         <div class="cart-empty">Your cart is empty.<br />Tap a drink to add it.</div>
@@ -64,6 +66,12 @@
       </div>
     </aside>
   </main>
+
+  <!-- Floating cart bar (mobile) -->
+  <button class="cart-bar" id="cartBar">
+    <span>🛒 <span id="cartBarCount">0</span> item(s)</span>
+    <span id="cartBarTotal">₱ 0.00</span>
+  </button>
 
   <!-- Customization Modal -->
   <div class="modal-overlay" id="customModal">

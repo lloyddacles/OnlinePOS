@@ -34,7 +34,7 @@ function render(report) {
   items.innerHTML = report.items.length
     ? report.items
         .map(
-          (i) => `<tr><td>${i.name}</td><td>${i.qty}</td><td>${fmt(i.revenue)}</td></tr>`
+          (i) => `<tr><td data-label="Product">${i.name}</td><td data-label="Qty Sold">${i.qty}</td><td data-label="Revenue">${fmt(i.revenue)}</td></tr>`
         )
         .join("")
     : `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px;">No sales in this period.</td></tr>`;
@@ -44,7 +44,7 @@ function render(report) {
     ? Object.entries(report.payments).sort((a, b) => b[1] - a[1])
     : [];
   payments.innerHTML = entries.length
-    ? entries.map(([method, total]) => `<tr><td>${method}</td><td>${fmt(total)}</td></tr>`).join("")
+    ? entries.map(([method, total]) => `<tr><td data-label="Method">${method}</td><td data-label="Revenue">${fmt(total)}</td></tr>`).join("")
     : `<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:16px;">No sales in this period.</td></tr>`;
 
   drawChart(report.daily);

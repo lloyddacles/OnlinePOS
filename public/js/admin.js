@@ -104,12 +104,12 @@ function renderPromos() {
       const statusClass = status === "Active" ? "ok" : "no";
       return `
         <tr>
-          <td><strong>${p.code}</strong></td>
-          <td>${p.discount_type === "percent" ? p.discount_value + "%" : fmt(p.discount_value)}</td>
-          <td>${p.min_subtotal ? fmt(p.min_subtotal) : "—"}</td>
-          <td style="font-size:12px;">${validity}</td>
-          <td>${p.used_count}${p.max_uses != null ? "/" + p.max_uses : ""}</td>
-          <td><span class="badge ${statusClass}">${status}</span></td>
+          <td data-label="Code"><strong>${p.code}</strong></td>
+          <td data-label="Discount">${p.discount_type === "percent" ? p.discount_value + "%" : fmt(p.discount_value)}</td>
+          <td data-label="Min Order">${p.min_subtotal ? fmt(p.min_subtotal) : "—"}</td>
+          <td data-label="Validity" style="font-size:12px;">${validity}</td>
+          <td data-label="Uses">${p.used_count}${p.max_uses != null ? "/" + p.max_uses : ""}</td>
+          <td data-label="Status"><span class="badge ${statusClass}">${status}</span></td>
           <td style="white-space:nowrap;">
             <button class="icon-btn edit-promo" data-id="${p.id}" title="Edit">✏️</button>
             <button class="icon-btn danger delete-promo" data-id="${p.id}" title="Delete">🗑️</button>
@@ -234,13 +234,13 @@ function renderProducts() {
     .map(
       (p) => `
         <tr>
-          <td>
+          <td data-label="Product">
             <strong>${CATEGORY_EMOJI[p.category] || "🥤"} ${p.name}</strong>
             ${p.barcode ? `<div style="color:var(--muted);font-size:11px;">${p.barcode}</div>` : ""}
           </td>
-          <td><span class="badge category">${p.category}</span></td>
-          <td>${fmt(p.price)}</td>
-          <td>
+          <td data-label="Category"><span class="badge category">${p.category}</span></td>
+          <td data-label="Price">${fmt(p.price)}</td>
+          <td data-label="Status">
             <button class="badge ${p.available ? "ok" : "no"} toggle-avail" data-id="${p.id}">${p.available ? "Available" : "Hidden"}</button>
           </td>
           <td style="white-space:nowrap;">
@@ -273,10 +273,10 @@ function renderAddons() {
     .map(
       (a) => `
         <tr>
-          <td><strong>${a.name}</strong></td>
-          <td><span class="badge category">${a.type}</span></td>
-          <td>${a.price ? fmt(a.price) : "Free"}</td>
-          <td>
+          <td data-label="Option"><strong>${a.name}</strong></td>
+          <td data-label="Type"><span class="badge category">${a.type}</span></td>
+          <td data-label="Price">${a.price ? fmt(a.price) : "Free"}</td>
+          <td data-label="Status">
             <button class="badge ${a.available ? "ok" : "no"} toggle-addon" data-id="${a.id}">${a.available ? "On" : "Off"}</button>
           </td>
           <td style="white-space:nowrap;">
@@ -335,12 +335,12 @@ function renderOrders(orders) {
     .map(
       (o) => `
         <tr style="cursor:pointer;" class="order-row" data-id="${o.id}">
-          <td><strong>${o.order_number}</strong></td>
-          <td>${formatDate(o.created_at)}</td>
-          <td>${o.customer_name || "Walk-in"}</td>
-          <td>${o.payment_method}</td>
-          <td>${badge(o.status)}</td>
-          <td><strong>${fmt(o.total)}</strong></td>
+          <td data-label="Order"><strong>${o.order_number}</strong></td>
+          <td data-label="Time">${formatDate(o.created_at)}</td>
+          <td data-label="Customer">${o.customer_name || "Walk-in"}</td>
+          <td data-label="Payment">${o.payment_method}</td>
+          <td data-label="Status">${badge(o.status)}</td>
+          <td data-label="Total"><strong>${fmt(o.total)}</strong></td>
         </tr>`
     )
     .join("");

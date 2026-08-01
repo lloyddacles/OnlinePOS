@@ -150,4 +150,15 @@ function logout() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", startClock);
+document.addEventListener("DOMContentLoaded", () => {
+  startClock();
+
+  const toggle = document.getElementById("navToggle");
+  const topbar = document.querySelector(".topbar");
+  if (toggle && topbar) {
+    toggle.addEventListener("click", () => topbar.classList.toggle("open"));
+    topbar.querySelectorAll("a").forEach((a) =>
+      a.addEventListener("click", () => topbar.classList.remove("open"))
+    );
+  }
+});

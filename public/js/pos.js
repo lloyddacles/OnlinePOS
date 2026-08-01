@@ -336,6 +336,12 @@ function renderCart() {
   document.getElementById("tax").textContent = fmt(tax);
   document.getElementById("total").textContent = fmt(total);
   document.getElementById("checkoutBtn").disabled = items.length === 0;
+
+  const cartBar = document.getElementById("cartBar");
+  if (cartBar) {
+    document.getElementById("cartBarCount").textContent = items.length;
+    document.getElementById("cartBarTotal").textContent = fmt(total);
+  }
 }
 
 function clearCart() {
@@ -599,6 +605,7 @@ async function confirmCheckout() {
     });
 
     document.getElementById("checkoutModal").classList.remove("open");
+    document.getElementById("cartPanel").classList.remove("open");
     order.store_name = state.settings.store_name;
     order.store_address = state.settings.store_address;
     order.tax_rate = state.settings.tax_rate;
@@ -645,6 +652,15 @@ function renderReceipt(order) {
 
 function wireEvents() {
   document.getElementById("search").addEventListener("input", (e) => handleSearch(e.target.value));
+
+  const cartBar = document.getElementById("cartBar");
+  const cartClose = document.getElementById("cartClose");
+  if (cartBar) {
+    cartBar.addEventListener("click", () => document.getElementById("cartPanel").classList.add("open"));
+  }
+  if (cartClose) {
+    cartClose.addEventListener("click", () => document.getElementById("cartPanel").classList.remove("open"));
+  }
 
   document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
   document.getElementById("clearBtn").addEventListener("click", () => {
