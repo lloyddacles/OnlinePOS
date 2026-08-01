@@ -105,7 +105,7 @@ function renderThermal(container, order) {
   push(dot("Subtotal", fmt(order.subtotal)));
   if (order.discount > 0) {
     push(dot("Discount", "-" + fmt(order.discount)));
-    push(dot("  (" + order.discount_type.toUpperCase() + ")", ""));
+    push(dot("  (" + (order.discount_type === "senior" ? "SENIOR/PWD" : order.promo_code || order.discount_type.toUpperCase()) + ")", ""));
   }
   push(dot("VAT " + (order.tax_rate || 12) + "%", fmt(order.tax)));
   push(dot("TOTAL", fmt(order.total)));

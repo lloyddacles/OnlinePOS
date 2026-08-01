@@ -62,6 +62,21 @@ db.exec(`
     key TEXT PRIMARY KEY,
     value TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS promos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    discount_type TEXT NOT NULL DEFAULT 'percent',
+    discount_value REAL NOT NULL DEFAULT 0,
+    min_subtotal REAL NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    start_date TEXT DEFAULT '',
+    end_date TEXT DEFAULT '',
+    max_uses INTEGER,
+    used_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+  );
 `);
 
 function ensureColumn(table, column, definition) {
@@ -74,6 +89,7 @@ function ensureColumn(table, column, definition) {
 ensureColumn("products", "barcode", "TEXT DEFAULT ''");
 ensureColumn("orders", "discount_type", "TEXT NOT NULL DEFAULT 'none'");
 ensureColumn("orders", "void_reason", "TEXT DEFAULT ''");
+ensureColumn("orders", "promo_code", "TEXT DEFAULT ''");
 
 const DEFAULTS = {
   store_name: "Rocks and Teas",

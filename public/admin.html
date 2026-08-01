@@ -91,6 +91,18 @@
 
     <div class="admin-grid" style="margin-top:18px;">
       <div class="panel">
+        <h2>Promos <button class="add-btn" id="addPromoBtn">+ Add Promo</button></h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Validity</th><th>Uses</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="promosTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
         <h2>Add-Ons &amp; Toppings <button class="add-btn" id="addAddonBtn">+ Add Option</button></h2>
         <div class="table-wrap">
           <table>
@@ -101,9 +113,10 @@
           </table>
         </div>
       </div>
+    </div>
 
-      <div class="panel">
-        <h2>Store Settings <button class="add-btn" id="saveSettings">Save</button></h2>
+    <div class="panel" style="margin-top:18px;">
+      <h2>Store Settings <button class="add-btn" id="saveSettings">Save</button></h2>
         <div class="form-group">
           <label>Store Name</label>
           <input type="text" id="setStoreName" />
@@ -212,6 +225,68 @@
       <div class="modal-actions">
         <button class="btn btn-secondary" id="cancelAddon">Cancel</button>
         <button class="btn btn-primary" id="saveAddon">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promo Modal -->
+  <div class="modal-overlay" id="promoModal">
+    <div class="modal">
+      <h2 id="promoModalTitle">Add Promo</h2>
+      <div class="subtitle">Create a promo code the cashier can apply at checkout.</div>
+      <input type="hidden" id="promoId" />
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Code</label>
+          <input type="text" id="promoCode" placeholder="e.g. SUMMER10" style="text-transform:uppercase;" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="promoDiscountType">
+            <option value="percent">Percent (%)</option>
+            <option value="amount">Fixed Amount (₱)</option>
+          </select>
+        </div>
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Discount Value</label>
+          <input type="number" id="promoDiscountValue" min="0" step="0.01" placeholder="e.g. 10 or 50" />
+        </div>
+        <div class="form-group">
+          <label>Min. Order (₱, optional)</label>
+          <input type="number" id="promoMinSubtotal" min="0" step="0.25" placeholder="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="promoDescription" placeholder="e.g. 10% off weekend orders" />
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="promoStartDate" />
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" id="promoEndDate" />
+        </div>
+      </div>
+      <div class="tender-row">
+        <div class="form-group">
+          <label>Max Uses (optional)</label>
+          <input type="number" id="promoMaxUses" min="1" placeholder="Unlimited" />
+        </div>
+        <div class="form-group">
+          <label style="padding-top:22px;">
+            <input type="checkbox" id="promoActive" checked style="width:auto;margin-right:6px;" />
+            Active
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelPromo">Cancel</button>
+        <button class="btn btn-primary" id="savePromo">Save</button>
       </div>
     </div>
   </div>

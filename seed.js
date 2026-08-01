@@ -107,6 +107,47 @@ function seedAdminUser() {
   console.log("Seeded admin user (admin / admin123).");
 }
 
+const seedPromos = [
+  {
+    code: "NEWBIE10",
+    description: "10% off your first order",
+    discount_type: "percent",
+    discount_value: 10,
+    min_subtotal: 0
+  },
+  {
+    code: "SUMMER50",
+    description: "₱50 off orders over ₱200",
+    discount_type: "amount",
+    discount_value: 50,
+    min_subtotal: 200
+  },
+  {
+    code: "PAYDAY20",
+    description: "20% off this weekend only",
+    discount_type: "percent",
+    discount_value: 20,
+    min_subtotal: 100
+  }
+];
+
+function seedPromosData() {
+  const count = db.prepare("SELECT COUNT(*) AS count FROM promos").get().count;
+  if (count > 0) {
+    console.log("Promos already seeded. Skipping.");
+    return;
+  }
+  const insert = db.prepare(
+    `INSERT INTO promos (code, description, discount_type, discount_value, min_subtotal, active)
+     VALUES (@code, @description, @discount_type, @discount_value, @min_subtotal, 1)`
+  );
+  const runAll = db.transaction((rows) => {
+    for (const row of rows) insert.run(row);
+  });
+  runAll(seedPromos);
+  console.log(`Seeded ${seedPromos.length} sample promos.`);
+}
+
 seedIfEmpty(
   "products",
   seedProducts,
@@ -122,3 +163,4 @@ seedIfEmpty(
 );
 
 seedAdminUser();
+seedPromosData();

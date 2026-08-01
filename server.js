@@ -11,6 +11,7 @@ const addonsRouter = require("./routes/addons");
 const authRouter = require("./routes/auth");
 const settingsRouter = require("./routes/settings");
 const reportsRouter = require("./routes/reports");
+const promosRouter = require("./routes/promos");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,6 +56,7 @@ app.use("/api/addons", addonsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/reports", reportsRouter);
+app.use("/api/promos", promosRouter.router);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });

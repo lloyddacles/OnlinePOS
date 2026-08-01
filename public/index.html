@@ -106,14 +106,12 @@
           <div style="font-size:12px;color:var(--muted);margin-top:4px;">20% off subtotal</div>
         </div>
         <div class="summary-row promo">
-          <label><span>Promo</span><input type="checkbox" id="promoCheck" style="width:auto;" /></label>
+          <label><span>Promo Code</span></label>
           <div style="display:flex;gap:6px;margin-top:6px;">
-            <select id="promoType" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
-              <option value="promo_pct">%</option>
-              <option value="promo_amt">₱</option>
-            </select>
-            <input type="number" id="promoValue" min="0" step="0.01" placeholder="0" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:12px;" />
+            <input type="text" id="promoInput" placeholder="e.g. NEWBIE10" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:12px;text-transform:uppercase;" />
+            <button type="button" id="applyPromo" style="padding:6px 14px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">Apply</button>
           </div>
+          <div id="promoStatus" style="font-size:12px;margin-top:4px;color:var(--muted);"></div>
         </div>
       </div>
       <div id="discountLine" class="summary-row" style="margin-top:10px;">

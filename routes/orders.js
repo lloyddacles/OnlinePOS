@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../db");
 const { requireAuth } = require("../lib/auth");
+const { checkPromo } = require("./promos");
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ router.post("/", (req, res) => {
     payment_method = "Cash",
     amount_tendered = 0,
     discount_type = "none",
-    discount_value = 0
+    promo_code = ""
   } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -69,7 +70,28 @@ router.post("/", (req, res) => {
     return sum + (product.price + addonTotal) * item.quantity;
   }, 0);
 
-  const discount = computeDiscount(discount_type, discount_value, subtotal);
+  let finalDiscountType = discount_type === "senior" ? "senior" : "none";
+  let discount = 0;
+  let appliedPromoCode = "";
+
+  if (promo_code && finalDiscountType !== "senior") {
+    const promo = db
+      .prepare("SELECT * FROM promos WHERE code = ?")
+      .get(String(promo_code).trim().toUpperCase());
+    const result = checkPromo(promo, subtotal);
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
+    }
+    discount = result.discount;
+    appliedPromoCode = result.promo.code;
+    finalDiscountType = "promo";
+    db.prepare("UPDATE promos SET used_count = used_count + 1 WHERE id = ?").run(result.promo.id);
+  }
+
+  if (finalDiscountType === "senior") {
+    discount = subtotal * 0.2;
+  }
+
   const taxable = subtotal - discount;
   const tax = taxable * taxRate;
   const total = taxable + tax;
@@ -101,9 +123,9 @@ router.post("/", (req, res) => {
     .prepare(
       `INSERT INTO orders
         (order_number, customer_name, items, subtotal, discount, discount_type, tax, total,
-         payment_method, amount_tendered, change_due, status)
+         payment_method, amount_tendered, change_due, status, promo_code)
        VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Completed')`
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Completed', ?)`
     )
     .run(
       orderNumber,
@@ -111,12 +133,13 @@ router.post("/", (req, res) => {
       JSON.stringify(normalizedItems),
       round(subtotal),
       round(discount),
-      discount_type,
+      finalDiscountType,
       round(tax),
       round(total),
       payment_method,
       Number(amount_tendered) || 0,
-      round(change)
+      round(change),
+      appliedPromoCode
     );
 
   const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(result.lastInsertRowid);
@@ -146,23 +169,6 @@ router.patch("/:id/status", requireAuth, (req, res) => {
   updated.items = JSON.parse(updated.items);
   res.json(updated);
 });
-
-function computeDiscount(type, value, subtotal) {
-  switch (type) {
-    case "senior":
-      return round(subtotal * 0.2);
-    case "promo_pct": {
-      const pct = Number(value) || 0;
-      return round((subtotal * Math.min(Math.max(pct, 0), 100)) / 100);
-    }
-    case "promo_amt": {
-      const amt = Number(value) || 0;
-      return round(Math.min(Math.max(amt, 0), subtotal));
-    }
-    default:
-      return 0;
-  }
-}
 
 function generateOrderNumber() {
   const now = new Date();

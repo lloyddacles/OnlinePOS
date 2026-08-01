@@ -26,6 +26,7 @@ const state = {
   cartIdCounter: 0,
   customProduct: null,
   customSelections: {},
+  promo: null,
   heldOrders: JSON.parse(localStorage.getItem("rt_held") || "[]")
 };
 
@@ -422,20 +423,47 @@ function cartSubtotal() {
 function computeDiscount() {
   const subtotal = cartSubtotal();
   const senior = document.getElementById("seniorCheck").checked;
-  const promo = document.getElementById("promoCheck").checked;
 
   if (senior) return { type: "senior", value: subtotal * 0.2, label: "Senior / PWD (20%)" };
-  if (promo) {
-    const promoType = document.getElementById("promoType").value;
-    const raw = Number(document.getElementById("promoValue").value) || 0;
-    if (promoType === "promo_pct") {
-      const pct = Math.min(Math.max(raw, 0), 100);
-      return { type: "promo_pct", value: (subtotal * pct) / 100, label: `Promo (${pct}%)` };
-    }
-    const amt = Math.min(Math.max(raw, 0), subtotal);
-    return { type: "promo_amt", value: amt, label: `Promo (₱ ${amt})` };
-  }
+  if (state.promo) return { type: "promo", value: state.promo.discount, label: `Promo ${state.promo.code}` };
   return { type: "none", value: 0, label: "None" };
+}
+
+async function applyPromo() {
+  const code = document.getElementById("promoInput").value.trim();
+  const status = document.getElementById("promoStatus");
+  if (!code) {
+    showToast("Enter a promo code");
+    return;
+  }
+  if (document.getElementById("seniorCheck").checked) {
+    document.getElementById("seniorCheck").checked = false;
+  }
+  try {
+    const subtotal = cartSubtotal();
+    const res = await fetch(`/api/promos/validate?code=${encodeURIComponent(code)}&subtotal=${subtotal}`);
+    const body = await res.json();
+    if (!res.ok) {
+      status.style.color = "var(--danger)";
+      status.textContent = body.error || "Invalid promo";
+      state.promo = null;
+      updateTotals();
+      return;
+    }
+    state.promo = body;
+    status.style.color = "var(--primary)";
+    status.textContent = `${body.code} applied: -${fmt(body.discount)} ${body.description ? "· " + body.description : ""} (tap code to remove)`;
+    document.getElementById("promoInput").value = "";
+    updateTotals();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+function clearPromo() {
+  state.promo = null;
+  document.getElementById("promoStatus").textContent = "";
+  updateTotals();
 }
 
 function getTotals() {
@@ -450,12 +478,13 @@ function getTotals() {
 
 function openCheckout() {
   if (state.cart.size === 0) return;
+  state.promo = null;
   document.getElementById("customerName").value = "";
   document.getElementById("paymentMethod").value = "Cash";
   document.getElementById("amountTendered").value = "";
   document.getElementById("seniorCheck").checked = false;
-  document.getElementById("promoCheck").checked = false;
-  document.getElementById("promoValue").value = "";
+  document.getElementById("promoInput").value = "";
+  document.getElementById("promoStatus").textContent = "";
   document.getElementById("changeBox").style.display = "none";
   updateTotals();
   renderQuickCash();
@@ -534,8 +563,8 @@ async function confirmCheckout() {
         customer_name: customerName,
         payment_method: paymentMethod,
         amount_tendered: amountTendered,
-        discount_type: totals.discount.type,
-        discount_value: totals.discount.type === "promo_pct" ? Number(document.getElementById("promoValue").value) : totals.discount.value
+        discount_type: document.getElementById("seniorCheck").checked ? "senior" : "none",
+        promo_code: state.promo ? state.promo.code : ""
       })
     });
 
@@ -574,7 +603,7 @@ function renderReceipt(order) {
       .join("")}
     <div class="r-divider"></div>
     <div class="r-row"><span>Subtotal</span><span>${fmt(order.subtotal)}</span></div>
-    ${order.discount > 0 ? `<div class="r-row" style="color:var(--danger);"><span>${order.discount_type === "senior" ? "Senior/PWD" : "Promo"}</span><span>-${fmt(order.discount)}</span></div>` : ""}
+    ${order.discount > 0 ? `<div class="r-row" style="color:var(--danger);"><span>${order.discount_type === "senior" ? "Senior/PWD" : order.promo_code || "Promo"}</span><span>-${fmt(order.discount)}</span></div>` : ""}
     <div class="r-row"><span>VAT (${state.settings.tax_rate}%)</span><span>${fmt(order.tax)}</span></div>
     <div class="r-row r-total"><span>TOTAL</span><span>${fmt(order.total)}</span></div>
     <div class="r-divider"></div>
@@ -610,19 +639,21 @@ function wireEvents() {
   document.getElementById("confirmCheckout").addEventListener("click", confirmCheckout);
 
   document.getElementById("seniorCheck").addEventListener("change", () => {
-    if (document.getElementById("seniorCheck").checked) {
-      document.getElementById("promoCheck").checked = false;
+    if (document.getElementById("seniorCheck").checked && state.promo) {
+      clearPromo();
     }
     updateTotals();
   });
-  document.getElementById("promoCheck").addEventListener("change", () => {
-    if (document.getElementById("promoCheck").checked) {
-      document.getElementById("seniorCheck").checked = false;
+  document.getElementById("applyPromo").addEventListener("click", applyPromo);
+  document.getElementById("promoInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyPromo();
     }
-    updateTotals();
   });
-  document.getElementById("promoType").addEventListener("change", updateTotals);
-  document.getElementById("promoValue").addEventListener("input", updateTotals);
+  document.getElementById("promoStatus").addEventListener("click", () => {
+    if (state.promo) clearPromo();
+  });
 
   document.getElementById("paymentMethod").addEventListener("change", handlePaymentChange);
   document.getElementById("amountTendered").addEventListener("input", updateChange);

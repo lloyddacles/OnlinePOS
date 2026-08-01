@@ -14,6 +14,7 @@ const state = {
   categories: [],
   orders: [],
   addons: [],
+  promos: [],
   productFilter: "All",
   activeOrder: null
 };
@@ -68,6 +69,132 @@ async function loadAddons() {
   try {
     state.addons = await api("/api/addons");
     renderAddons();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+async function loadPromos() {
+  try {
+    state.promos = await api("/api/promos");
+    renderPromos();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+function renderPromos() {
+  const tbody = document.getElementById("promosTable");
+  if (state.promos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">No promos yet.</td></tr>`;
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  tbody.innerHTML = state.promos
+    .map((p) => {
+      const validity = p.start_date || p.end_date
+        ? `${p.start_date || "…"} → ${p.end_date || "…"}`
+        : "Always";
+      const expired = p.end_date && today > p.end_date;
+      const notStarted = p.start_date && today < p.start_date;
+      const status = !p.active ? "Off" : expired ? "Expired" : notStarted ? "Upcoming" : "Active";
+      const statusClass = status === "Active" ? "ok" : "no";
+      return `
+        <tr>
+          <td><strong>${p.code}</strong></td>
+          <td>${p.discount_type === "percent" ? p.discount_value + "%" : fmt(p.discount_value)}</td>
+          <td>${p.min_subtotal ? fmt(p.min_subtotal) : "—"}</td>
+          <td style="font-size:12px;">${validity}</td>
+          <td>${p.used_count}${p.max_uses != null ? "/" + p.max_uses : ""}</td>
+          <td><span class="badge ${statusClass}">${status}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="icon-btn edit-promo" data-id="${p.id}" title="Edit">✏️</button>
+            <button class="icon-btn danger delete-promo" data-id="${p.id}" title="Delete">🗑️</button>
+          </td>
+        </tr>`;
+    })
+    .join("");
+
+  tbody.querySelectorAll(".edit-promo").forEach((btn) => {
+    btn.addEventListener("click", () => openPromoModal(Number(btn.dataset.id)));
+  });
+  tbody.querySelectorAll(".delete-promo").forEach((btn) => {
+    btn.addEventListener("click", () => deletePromo(Number(btn.dataset.id)));
+  });
+}
+
+function openPromoModal(id) {
+  const modal = document.getElementById("promoModal");
+  document.getElementById("promoModalTitle").textContent = id ? "Edit Promo" : "Add Promo";
+  document.getElementById("promoId").value = id || "";
+
+  const promo = state.promos.find((p) => p.id === id);
+  document.getElementById("promoCode").value = promo ? promo.code : "";
+  document.getElementById("promoDiscountType").value = promo ? promo.discount_type : "percent";
+  document.getElementById("promoDiscountValue").value = promo ? promo.discount_value : "";
+  document.getElementById("promoMinSubtotal").value = promo ? promo.min_subtotal : 0;
+  document.getElementById("promoDescription").value = promo ? promo.description || "" : "";
+  document.getElementById("promoStartDate").value = promo ? promo.start_date || "" : "";
+  document.getElementById("promoEndDate").value = promo ? promo.end_date || "" : "";
+  document.getElementById("promoMaxUses").value = promo ? (promo.max_uses != null ? promo.max_uses : "") : "";
+  document.getElementById("promoActive").checked = promo ? Boolean(promo.active) : true;
+
+  modal.classList.add("open");
+}
+
+async function savePromo() {
+  const id = document.getElementById("promoId").value;
+  const payload = {
+    code: document.getElementById("promoCode").value.trim(),
+    discount_type: document.getElementById("promoDiscountType").value,
+    discount_value: Number(document.getElementById("promoDiscountValue").value),
+    min_subtotal: Number(document.getElementById("promoMinSubtotal").value) || 0,
+    description: document.getElementById("promoDescription").value.trim(),
+    start_date: document.getElementById("promoStartDate").value,
+    end_date: document.getElementById("promoEndDate").value,
+    max_uses: document.getElementById("promoMaxUses").value ? Number(document.getElementById("promoMaxUses").value) : null,
+    active: document.getElementById("promoActive").checked
+  };
+
+  if (!payload.code || isNaN(payload.discount_value) || payload.discount_value <= 0) {
+    showToast("Enter a code and a discount value greater than 0");
+    return;
+  }
+  if (payload.discount_type === "percent" && payload.discount_value > 100) {
+    showToast("Percent discount cannot exceed 100");
+    return;
+  }
+
+  try {
+    if (id) {
+      await api(`/api/promos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      showToast("Promo updated");
+    } else {
+      await api("/api/promos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      showToast("Promo created");
+    }
+    document.getElementById("promoModal").classList.remove("open");
+    await loadPromos();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+async function deletePromo(id) {
+  if (!confirm("Delete this promo?")) return;
+  try {
+    await api(`/api/promos/${id}`, { method: "DELETE" });
+    showToast("Promo deleted");
+    await loadPromos();
   } catch (err) {
     showToast(err.message);
   }
@@ -235,7 +362,7 @@ async function openOrder(id) {
       ${items}
       <div class="r-divider"></div>
       <div class="r-row"><span>Subtotal</span><span>${fmt(order.subtotal)}</span></div>
-      ${order.discount > 0 ? `<div class="r-row" style="color:var(--danger);"><span>${order.discount_type === "senior" ? "Senior/PWD" : "Promo"}</span><span>-${fmt(order.discount)}</span></div>` : ""}
+      ${order.discount > 0 ? `<div class="r-row" style="color:var(--danger);"><span>${order.discount_type === "senior" ? "Senior/PWD" : order.promo_code || "Promo"}</span><span>-${fmt(order.discount)}</span></div>` : ""}
       <div class="r-row"><span>VAT</span><span>${fmt(order.tax)}</span></div>
       <div class="r-row r-total"><span>TOTAL</span><span>${fmt(order.total)}</span></div>
       <div class="r-divider"></div>
@@ -532,7 +659,13 @@ function wireEvents() {
   document.getElementById("saveSettings").addEventListener("click", saveSettings);
   document.getElementById("changePwBtn").addEventListener("click", changePassword);
 
-  [document.getElementById("productModal"), document.getElementById("orderModal"), document.getElementById("addonModal")].forEach((modal) => {
+  document.getElementById("addPromoBtn").addEventListener("click", () => openPromoModal(null));
+  document.getElementById("cancelPromo").addEventListener("click", () => {
+    document.getElementById("promoModal").classList.remove("open");
+  });
+  document.getElementById("savePromo").addEventListener("click", savePromo);
+
+  [document.getElementById("productModal"), document.getElementById("orderModal"), document.getElementById("addonModal"), document.getElementById("promoModal")].forEach((modal) => {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("open");
     });
@@ -546,5 +679,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProducts();
   loadOrders();
   loadAddons();
+  loadPromos();
   loadSettingsForm();
 });
