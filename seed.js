@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const db = require("./db");
+const { verifyPassword } = require("./lib/auth");
 
 const seedProducts = [
   // Milk Tea
@@ -163,9 +164,16 @@ function seedAdminUser() {
     .pbkdf2Sync("admin123", salt, 100000, 64, "sha512")
     .toString("hex");
   db.prepare(
-    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'admin')"
+    "INSERT INTO users (username, password_hash, role, must_change_password) VALUES (?, ?, 'admin', 1)"
   ).run("admin", `${salt}:${hash}`);
-  console.log("Seeded admin user (admin / admin123).");
+  console.log("Seeded admin user (admin / admin123). Password change required on first login.");
+}
+
+function enforcePasswordChange() {
+  const admin = db.prepare("SELECT * FROM users WHERE username = 'admin'").get();
+  if (admin && verifyPassword("admin123", admin.password_hash)) {
+    db.prepare("UPDATE users SET must_change_password = 1 WHERE id = ?").run(admin.id);
+  }
 }
 
 const seedPromos = [
@@ -224,6 +232,7 @@ seedIfEmpty(
 );
 
 seedAdminUser();
+enforcePasswordChange();
 seedPromosData();
 seedMissingProducts();
 seedWingAddonsData();

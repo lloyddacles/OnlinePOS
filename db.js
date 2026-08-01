@@ -89,6 +89,7 @@ function ensureColumn(table, column, definition) {
   }
 }
 
+ensureColumn("users", "must_change_password", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("products", "barcode", "TEXT DEFAULT ''");
 ensureColumn("orders", "discount_type", "TEXT NOT NULL DEFAULT 'none'");
 ensureColumn("orders", "void_reason", "TEXT DEFAULT ''");

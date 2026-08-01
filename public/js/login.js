@@ -13,7 +13,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       const err = await res.json();
       throw new Error(err.error || "Login failed");
     }
-    window.location.href = "/";
+    const data = await res.json();
+    window.location.href = data.mustChangePassword ? "/change-password" : "/";
   } catch (err) {
     showToast(err.message);
   }

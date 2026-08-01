@@ -27,16 +27,32 @@ const protectedPages = {
 
 for (const [route, file] of Object.entries(protectedPages)) {
   app.get(route, (req, res) => {
-    if (!getSession(req)) {
+    const session = getSession(req);
+    if (!session) {
       return res.redirect("/login");
+    }
+    if (session.mustChangePassword) {
+      return res.redirect("/change-password");
     }
     res.sendFile(path.join(__dirname, "public", file));
   });
 }
 
-app.get("/login", (req, res) => {
-  if (getSession(req)) {
+app.get("/change-password", (req, res) => {
+  const session = getSession(req);
+  if (!session) {
+    return res.redirect("/login");
+  }
+  if (!session.mustChangePassword) {
     return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public", "change-password.html"));
+});
+
+app.get("/login", (req, res) => {
+  const session = getSession(req);
+  if (session) {
+    return res.redirect(session.mustChangePassword ? "/change-password" : "/");
   }
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });

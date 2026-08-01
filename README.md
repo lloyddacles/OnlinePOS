@@ -50,6 +50,8 @@ If you wish to use, license, or adapt this system — for a business, a client, 
 
 ### Security
 - Password-protected admin login (hashed + salted passwords)
+- **Forced password change on first login** — the default `admin/admin123` credentials must be replaced before the dashboard can be used
+- **Brute-force protection** — the account locks for 15 minutes after 5 failed login attempts
 - Separate access control for protected pages
 
 ---
@@ -94,7 +96,7 @@ http://localhost:3000
 |-------|----------|------------|
 | Admin | `admin`  | `admin123` |
 
-> ⚠️ **Change the default password immediately after your first login** in the Admin Panel → Settings.
+> ⚠️ **A password change is required on your very first login.** After signing in with the default credentials, you'll be directed to set your own password before you can use the system.
 
 ---
 
